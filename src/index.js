@@ -62,16 +62,14 @@ const renderGallery = images => {
     })
     .join('');
 
-  if (currentPage === 1) {
-    galleryContainer.innerHTML = galleryMarkup;
-  } else {
-    galleryContainer.innerHTML += galleryMarkup;
-  }
+    if (currentPage === 1) {
+      galleryContainer.innerHTML = ''; // Очистим содержимое контейнера перед вставкой нового
+      galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
+    } else {
+      galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
+    }
 
-  const { height: cardHeight } =
-    galleryContainer.firstElementChild.getBoundingClientRect(); 
-    //getBoundingClientRect() повертає розміри та позицію елемента відносно видимої області вікна.
-  window.scrollBy({ top: cardHeight , behavior: 'smooth' });
+  
 
   lightbox.refresh();
 };
@@ -101,6 +99,8 @@ const handleFormSubmit = async event => {
       }
       Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
     } else {
+      galleryContainer.innerHTML = '';
+      loadMoreBtn.style.display = 'none';
       Notiflix.Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
@@ -120,6 +120,12 @@ const handleLoadMoreClick = async () => {
 
     if (data && data.hits.length > 0) {
       renderGallery(data.hits);
+      if (data.hits.length < perPage) {
+        loadMoreBtn.style.display = 'none';
+        Notiflix.Notify.warning(
+          "You've reached the end of search results. No more images available."
+        );
+      }
     } else {
       loadMoreBtn.style.display = 'none';
       Notiflix.Notify.warning(
@@ -132,6 +138,10 @@ const handleLoadMoreClick = async () => {
     console.error('Error fetching data:', error);
     return null;
   }
+  const { height: cardHeight } =
+    galleryContainer.firstElementChild.getBoundingClientRect(); 
+    //getBoundingClientRect() повертає розміри та позицію елемента відносно видимої області вікна.
+  window.scrollBy({ top: cardHeight , behavior: 'smooth' });
 };
 
 searchForm.addEventListener('submit', handleFormSubmit);
